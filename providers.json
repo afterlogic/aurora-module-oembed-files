@@ -1,0 +1,23 @@
+[
+	{
+		"url": "http://www.vimeo.com/* and http://www.vimeo.com/groups/*/videos/*", 
+		"url_re": "vimeo\\.com\\/.*", 
+		"example_url": "http://www.vimeo.com/1211060", 
+		"endpoint_url": "http://www.vimeo.com/api/oembed.json?url=", 
+		"title": "Vimeo"
+	}, 
+	{
+		"url": "http://*.youtube.com/watch*", 
+		"url_re": "youtube\\.com\\/watch.+v=[\\w-]+&?", 
+		"example_url": "http://www.youtube.com/watch?v=vk1HvP7NO5w", 
+		"endpoint_url": "http://www.youtube.com/oembed?format=json&url=", 
+		"title": "YouTube"
+	},
+	{
+		"url": "http://*.soundcloud.com/*", 
+		"url_re": "soundcloud\\.com\\/.*",
+		"example_url": "https://soundcloud.com/youngma/young-ma-ooouuu-1", 
+		"endpoint_url": "https://soundcloud.com/oembed?format=json&url=", 
+		"title": "SoundCloud"
+	}
+]
