@@ -21,7 +21,7 @@ class OEmbedFilesModule extends AApiModule
 			if ($Result)
 			{
 				$oItem->LinkType = 'oembeded';
-				$oItem->Name = isset($Result->title) ? $Result->title : $oItem->Name;
+//				$oItem->Name = isset($Result->title) ? $Result->title : $oItem->Name;
 				$oItem->Size = isset($Result->fileSize) ? $Result->fileSize : $oItem->Size;
 				$oItem->OembedHtml = isset($Result->html) ? $Result->html : $oItem->OembedHtml;
 				$oItem->Thumb = true;
