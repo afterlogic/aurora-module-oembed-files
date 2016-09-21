@@ -1,10 +1,32 @@
 <?php
+/*
+ * @copyright Copyright (c) 2016, Afterlogic Corp.
+ * @license AGPL-3.0
+ *
+ * This code is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License, version 3,
+ * as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License, version 3,
+ * along with this program. If not, see <http://www.gnu.org/licenses/>
+ */
 
 class OEmbedFilesModule extends AApiModule
 {
 	protected $aProviders = array();
 	
-	public function init() 
+	/***** private functions *****/
+	/**
+	 * Initializes module.
+	 * 
+	 * @ignore
+	 */
+	public function init()
 	{
 		$this->loadProviders();
 		
@@ -13,11 +35,60 @@ class OEmbedFilesModule extends AApiModule
 		$this->subscribeEvent('Files::PopulateFileItem', array($this, 'onPopulateFileItem'));
 	}
 	
+	/**
+	 * Returns **true** if oembed file info for specified link was found.
+	 * 
+	 * @ignore
+	 * @param string $Link File link.
+	 * @param boolean $Result Is passed by reference.
+	 * @return boolean
+	 */
+	public function onGetLinkType($Link, &$Result)
+	{
+		$Result = !!($this->getOembedFileInfo($Link));
+		return $Result; // break or not executing of event handlers
+	}
+	
+	/**
+	 * Writes to $mResult variable information about link.
+	 * 
+	 * @ignore
+	 * @param string $sUrl
+	 * @param array $mResult
+	 */
+	public function onCheckUrl($sUrl, &$mResult)
+	{
+		$iUserId = \CApi::getAuthenticatedUserId();
+		
+		if ($iUserId)
+		{
+			if (!empty($sUrl))
+			{
+				$oInfo = $this->getOembedFileInfo($sUrl);
+				if ($oInfo)
+				{
+					$mResult['Size'] = isset($oInfo->fileSize) ? $oInfo->fileSize : '';
+					$mResult['Name'] = isset($oInfo->title) ? $oInfo->title : '';
+					$mResult['LinkType'] = 'oembeded';
+					$mResult['Thumb'] = isset($oInfo->thumbnail_url) ? $oInfo->thumbnail_url : null;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Populates file item.
+	 * 
+	 * @ignore
+	 * @param \CFileStorageItem $oItem
+	 * @return boolean
+	 */
 	public function onPopulateFileItem(&$oItem)
 	{
+		$bBreak = false;
 		if ($oItem->IsLink)
 		{
-			$Result = $this->GetOembedFileInfo($oItem->LinkUrl);
+			$Result = $this->getOembedFileInfo($oItem->LinkUrl);
 			if ($Result)
 			{
 				$oItem->LinkType = 'oembeded';
@@ -28,18 +99,25 @@ class OEmbedFilesModule extends AApiModule
 				$oItem->ThumbnailLink = $Result->thumbnailLink;
 				$oItem->IsExternal = true;
 			}
-			return !!$Result;
+			$bBreak = !!$Result;
 		}
-	}			
-
-	protected function GetOembedFileInfo($sUrl)
+		return $bBreak; // break or not executing of event handlers
+	}
+	
+	/**
+	 * Returns Oembed information for file.
+	 * 
+	 * @param string $sUrl
+	 * @return stdClass
+	 */
+	protected function getOembedFileInfo($sUrl)
 	{
 		$mResult = false;
 		$sOembedUrl = '';
 		
 		foreach ($this->aProviders as $aProvider)
 		{
-			if (preg_match("/".$aProvider['patterns']."/", $sUrl, $aMatches))
+			if (preg_match("/".$aProvider['patterns']."/", $sUrl))
 			{
 				$sOembedUrl = $aProvider['url'].$sUrl;
 				break;
@@ -51,7 +129,7 @@ class OEmbedFilesModule extends AApiModule
 			$sUrl = str_replace('instagram.com', 'instagr.am', $sUrl);
 			$sOembedUrl = 'https://api.instagram.com/oembed?url='.$sUrl;
 		}
-
+		
 		if (strlen($sOembedUrl) > 0)
 		{
 			$oCurl = curl_init();
@@ -71,51 +149,28 @@ class OEmbedFilesModule extends AApiModule
 			$sResult = curl_exec($oCurl);
 			curl_close($oCurl);
 			$oResult = json_decode($sResult);
-
+			
 			if ($oResult)
 			{
 				$sSearch = $oResult->html;
 				$aPatterns = array('/ width="\d+."/', '/ height="\d+."/', '/(src="[^\"]+)/');
 				$aResults = array(' width="896"', ' height="504"', '$1?&autoplay=1&auto_play=true');
 				$oResult->html = preg_replace($aPatterns, $aResults, $sSearch);
-
+				
 				$aRemoteFileInfo = \api_Utils::GetRemoteFileInfo($sUrl);
 				$oResult->fileSize = $aRemoteFileInfo['size'];
-
+				
 				$oResult->thumbnailLink = $oResult->thumbnail_url;
 				$mResult = $oResult;
 			}
 		}
-
+		
 		return $mResult;
-	}	
-	
-	public function onGetLinkType($Link, &$Result)
-	{
-		$Result = !!($this->GetOembedFileInfo($Link));
-		return $Result;
-	}	
-	
-	public function onCheckUrl($sUrl, &$mResult)
-	{
-		$iUserId = \CApi::getAuthenticatedUserId();
-
-		if ($iUserId)
-		{
-			if (!empty($sUrl))
-			{
-				$oInfo = $this->GetOembedFileInfo($sUrl);
-				if ($oInfo)
-				{
-					$mResult['Size'] = isset($oInfo->fileSize) ? $oInfo->fileSize : '';
-					$mResult['Name'] = isset($oInfo->title) ? $oInfo->title : '';
-					$mResult['LinkType'] = 'oembeded';
-					$mResult['Thumb'] = isset($oInfo->thumbnail_url) ? $oInfo->thumbnail_url : null;
-				}
-			}
-		}		
 	}
 	
+	/**
+	 * Loads providers from file.
+	 */
 	protected function loadProviders()
 	{
 		$sFile = __DIR__.DIRECTORY_SEPARATOR.'providers.json';
@@ -132,5 +187,5 @@ class OEmbedFilesModule extends AApiModule
 			}
 		}
 	}
-
+	/***** private functions *****/
 }
