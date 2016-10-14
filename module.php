@@ -57,15 +57,15 @@ class OEmbedFilesModule extends AApiModule
 	 * @param string $sUrl
 	 * @param array $mResult
 	 */
-	public function onCheckUrl($sUrl, &$mResult)
+	public function onCheckUrl($aArgs, &$mResult)
 	{
 		$iUserId = \CApi::getAuthenticatedUserId();
 		
 		if ($iUserId)
 		{
-			if (!empty($sUrl))
+			if (!empty($aArgs['Url']))
 			{
-				$oInfo = $this->getOembedFileInfo($sUrl);
+				$oInfo = $this->getOembedFileInfo($aArgs['Url']);
 				if ($oInfo)
 				{
 					$mResult['Size'] = isset($oInfo->fileSize) ? $oInfo->fileSize : '';
