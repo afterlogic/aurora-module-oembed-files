@@ -84,7 +84,7 @@ class OEmbedFilesModule extends AApiModule
 	 * @param \CFileStorageItem $oItem
 	 * @return boolean
 	 */
-	public function onPopulateFileItem(&$oItem)
+	public function onPopulateFileItem($aArgs, &$oItem)
 	{
 		$bBreak = false;
 		if ($oItem->IsLink)
