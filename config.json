@@ -1,9 +1,6 @@
 {
-    "EnableUploadSizeLimit": true,
-    "UploadSizeLimitMb": 5,
-    "Disabled": false,
-    "EnableCorporate": true,
-    "UserSpaceLimitMb": 100,
-    "CustomTabTitle": "",
-    "MaxFileSizeForMakingThumbnail": 5242880
+	"Disabled": [
+		false,
+		"bool"
+	]
 }
