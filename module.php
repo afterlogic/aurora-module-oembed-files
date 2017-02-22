@@ -17,7 +17,10 @@
  *
  * @package Modules
  */
-class OEmbedFilesModule extends AApiModule
+
+namespace Aurora\Modules;
+
+class OEmbedFilesModule extends \AApiModule
 {
 	protected $aProviders = array();
 	
@@ -118,22 +121,22 @@ class OEmbedFilesModule extends AApiModule
 		
 		foreach ($this->aProviders as $aProvider)
 		{
-			if (preg_match("/".$aProvider['patterns']."/", $sUrl))
+			if (\preg_match("/".$aProvider['patterns']."/", $sUrl))
 			{
 				$sOembedUrl = $aProvider['url'].$sUrl;
 				break;
 			}
 		}
 		
-		if (false !== strpos($sUrl, 'instagram.com'))
+		if (false !== \strpos($sUrl, 'instagram.com'))
 		{
-			$sUrl = str_replace('instagram.com', 'instagr.am', $sUrl);
+			$sUrl = \str_replace('instagram.com', 'instagr.am', $sUrl);
 			$sOembedUrl = 'https://api.instagram.com/oembed?url='.$sUrl;
 		}
 		
-		if (strlen($sOembedUrl) > 0)
+		if (\strlen($sOembedUrl) > 0)
 		{
-			$oCurl = curl_init();
+			$oCurl = \curl_init();
 			\curl_setopt_array($oCurl, array(
 				CURLOPT_URL => $sOembedUrl,
 				CURLOPT_HEADER => 0,
@@ -147,16 +150,16 @@ class OEmbedFilesModule extends AApiModule
 				CURLOPT_TIMEOUT => 5,
 				CURLOPT_MAXREDIRS => 5
 			));
-			$sResult = curl_exec($oCurl);
-			curl_close($oCurl);
-			$oResult = json_decode($sResult);
+			$sResult = \curl_exec($oCurl);
+			\curl_close($oCurl);
+			$oResult = \json_decode($sResult);
 			
 			if ($oResult)
 			{
 				$sSearch = $oResult->html;
 				$aPatterns = array('/ width="\d+."/', '/ height="\d+."/', '/(src="[^\"]+)/');
 				$aResults = array(' width="896"', ' height="504"', '$1?&autoplay=1&auto_play=true');
-				$oResult->html = preg_replace($aPatterns, $aResults, $sSearch);
+				$oResult->html =\preg_replace($aPatterns, $aResults, $sSearch);
 				
 				$aRemoteFileInfo = \api_Utils::GetRemoteFileInfo($sUrl);
 				$oResult->fileSize = $aRemoteFileInfo['size'];
@@ -175,10 +178,10 @@ class OEmbedFilesModule extends AApiModule
 	protected function loadProviders()
 	{
 		$sFile = __DIR__.DIRECTORY_SEPARATOR.'providers.json';
-		if (file_exists($sFile))
+		if (\file_exists($sFile))
 		{
-			$sJsonData = file_get_contents($sFile);
-			$aJsonData = json_decode($sJsonData, true);
+			$sJsonData = \file_get_contents($sFile);
+			$aJsonData = \json_decode($sJsonData, true);
 			foreach ($aJsonData as $aProvider)
 			{
 				$this->aProviders[$aProvider['title']] = array(
