@@ -20,7 +20,7 @@
 
 namespace Aurora\Modules;
 
-class OEmbedFilesModule extends \AApiModule
+class OEmbedFilesModule extends \Aurora\System\AbstractModule
 {
 	protected $aProviders = array();
 	
@@ -62,7 +62,7 @@ class OEmbedFilesModule extends \AApiModule
 	 */
 	public function onCheckUrl($aArgs, &$mResult)
 	{
-		$iUserId = \CApi::getAuthenticatedUserId();
+		$iUserId = \Aurora\System\Api::getAuthenticatedUserId();
 		
 		if ($iUserId)
 		{
@@ -161,7 +161,7 @@ class OEmbedFilesModule extends \AApiModule
 				$aResults = array(' width="896"', ' height="504"', '$1?&autoplay=1&auto_play=true');
 				$oResult->html =\preg_replace($aPatterns, $aResults, $sSearch);
 				
-				$aRemoteFileInfo = \api_Utils::GetRemoteFileInfo($sUrl);
+				$aRemoteFileInfo = \Aurora\System\Utils::GetRemoteFileInfo($sUrl);
 				$oResult->fileSize = $aRemoteFileInfo['size'];
 				
 				$oResult->thumbnailLink = $oResult->thumbnail_url;
