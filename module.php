@@ -20,7 +20,7 @@
 
 namespace Aurora\Modules;
 
-class OEmbedFilesModule extends \Aurora\System\AbstractModule
+class OEmbedFilesModule extends \Aurora\System\Module\AbstractModule
 {
 	protected $aProviders = array();
 	
