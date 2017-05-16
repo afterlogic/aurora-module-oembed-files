@@ -93,7 +93,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$oItem->Size = isset($Result->fileSize) ? $Result->fileSize : $oItem->Size;
 				$oItem->OembedHtml = isset($Result->html) ? $Result->html : $oItem->OembedHtml;
 				$oItem->Thumb = true;
-				$oItem->ThumbnailLink = $Result->thumbnailLink;
+				$oItem->ThumbnailUrl = $Result->thumbnailUrl;
 				$oItem->IsExternal = true;
 			}
 			$bBreak = !!$Result;
@@ -157,7 +157,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$aRemoteFileInfo = \Aurora\System\Utils::GetRemoteFileInfo($sUrl);
 				$oResult->fileSize = $aRemoteFileInfo['size'];
 				
-				$oResult->thumbnailLink = $oResult->thumbnail_url;
+				$oResult->thumbnailUrl = $oResult->thumbnail_url;
 				$mResult = $oResult;
 			}
 		}
