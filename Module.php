@@ -77,7 +77,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * Populates file item.
 	 * 
 	 * @ignore
-	 * @param \CFileStorageItem $oItem
+	 * @param \Aurora\Modules\Files\Classes\FileItem $oItem
 	 * @return boolean
 	 */
 	public function onPopulateFileItem($aArgs, &$oItem)
