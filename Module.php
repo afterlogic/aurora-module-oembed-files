@@ -29,7 +29,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		
 		$this->subscribeEvent('Files::GetLinkType', array($this, 'onGetLinkType'));
 		$this->subscribeEvent('Files::CheckUrl', array($this, 'onCheckUrl'));
-		$this->subscribeEvent('Files::PopulateFileItem', array($this, 'onPopulateFileItem'));
+		$this->subscribeEvent('PopulateFileItem', array($this, 'onPopulateFileItem'));
 	}
 	
 	/**
