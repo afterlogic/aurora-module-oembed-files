@@ -29,7 +29,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		
 		$this->subscribeEvent('Files::GetLinkType', array($this, 'onGetLinkType'));
 		$this->subscribeEvent('Files::CheckUrl', array($this, 'onCheckUrl'));
-		$this->subscribeEvent('PopulateFileItem', array($this, 'onPopulateFileItem'));
+		$this->subscribeEvent('Files::PopulateFileItem::after', array($this, 'onAfterPopulateFileItem'));
 	}
 	
 	/**
@@ -80,7 +80,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 * @param \Aurora\Modules\Files\Classes\FileItem $oItem
 	 * @return boolean
 	 */
-	public function onPopulateFileItem($aArgs, &$oItem)
+	public function onAfterPopulateFileItem($aArgs, &$oItem)
 	{
 		$bBreak = false;
 		if ($oItem->IsLink)
