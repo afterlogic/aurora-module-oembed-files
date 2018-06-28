@@ -43,8 +43,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public function onGetLinkType($Link, &$Result)
 	{
-		$Result = !!($this->getOembedFileInfo($Link));
-		return $Result; // break or not executing of event handlers
+		return !($this->getOembedFileInfo($Link)); // break or not executing of event handlers
 	}
 	
 	/**
@@ -83,7 +82,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 */
 	public function onAfterPopulateFileItem($aArgs, &$oItem)
 	{
-		$bBreak = false;
+		$bBreak = true;
 		if ($oItem->IsLink)
 		{
 			$Result = $this->getOembedFileInfo($oItem->LinkUrl);
@@ -97,7 +96,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$oItem->ThumbnailUrl = $Result->thumbnailUrl;
 				$oItem->IsExternal = true;
 			}
-			$bBreak = !!$Result;
+			$bBreak = !$Result;
 		}
 		return $bBreak; // break or not executing of event handlers
 	}
