@@ -87,6 +87,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if ($oItem->IsLink)
 		{
 			$Result = $this->getOembedFileInfo($oItem->LinkUrl);
+			
 			if ($Result)
 			{
 				$oItem->LinkType = 'oembeded';
