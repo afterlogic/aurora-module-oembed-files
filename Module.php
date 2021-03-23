@@ -162,7 +162,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$aRemoteFileInfo = \Aurora\System\Utils::GetRemoteFileInfo($sUrl);
 				$oResult->fileSize = $aRemoteFileInfo['size'];
 				
-				$oResult->thumbnailUrl = $oResult->thumbnail_url;
+				$oResult->thumbnailUrl = isset($oResult->thumbnail_url) ? $oResult->thumbnail_url : '';
 				$mResult = $oResult;
 			}
 		}
