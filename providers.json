@@ -7,10 +7,10 @@
 		"title": "Vimeo"
 	}, 
 	{
-		"url": "http://*.youtube.com/watch*", 
+		"url": "https://*.youtube.com/watch*", 
 		"url_re": "youtube\\.com\\/watch.+v=[\\w-]+&?|youtu\\.be\\/.*", 
-		"example_url": "http://www.youtube.com/watch?v=vk1HvP7NO5w", 
-		"endpoint_url": "http://www.youtube.com/oembed?format=json&url=", 
+		"example_url": "https://www.youtube.com/watch?v=vk1HvP7NO5w", 
+		"endpoint_url": "https://www.youtube.com/oembed?format=json&url=", 
 		"title": "YouTube"
 	},
 	{
