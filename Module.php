@@ -139,7 +139,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 				CURLOPT_URL => $sOembedUrl,
 				CURLOPT_HEADER => 0,
 				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_FOLLOWLOCATION => 1,
 				CURLOPT_FOLLOWLOCATION => true,
 				CURLOPT_ENCODING => '',
 				CURLOPT_AUTOREFERER => true,
