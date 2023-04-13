@@ -54,7 +54,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      * Writes to $mResult variable information about link.
      *
      * @ignore
-     * @param string $sUrl
+     * @param array $aArgs
      * @param array $mResult
      */
     public function onCheckUrl($aArgs, &$mResult)
@@ -89,7 +89,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
             if ($Result) {
                 $oItem->LinkType = 'oembeded';
-                //				$oItem->Name = isset($Result->title) ? $Result->title : $oItem->Name;
+                // $oItem->Name = isset($Result->title) ? $Result->title : $oItem->Name;
                 $oItem->Size = isset($Result->fileSize) ? $Result->fileSize : $oItem->Size;
                 $oItem->OembedHtml = isset($Result->html) ? $Result->html : $oItem->OembedHtml;
                 $oItem->Thumb = true;
@@ -105,7 +105,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      * Returns Oembed information for file.
      *
      * @param string $sUrl
-     * @return stdClass
+     * @return \Aurora\Modules\OEmbedFiles\Classes\FileInfo
      */
     protected function getOembedFileInfo($sUrl)
     {
@@ -152,7 +152,11 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oResult->fileSize = $aRemoteFileInfo['size'];
 
                 $oResult->thumbnailUrl = isset($oResult->thumbnail_url) ? $oResult->thumbnail_url : '';
-                $mResult = $oResult;
+
+                $mResult = new \Aurora\Modules\OEmbedFiles\Classes\FileInfo();
+                $mResult->html = $oResult->html;
+                $mResult->fileSize = $oResult->fileSize;
+                $mResult->thumbnailUrl = $oResult->thumbnailUrl;
             }
         }
 
