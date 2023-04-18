@@ -46,6 +46,15 @@ class Module extends \Aurora\System\Module\AbstractModule
     }
 
     /**
+     *
+     * @return Settings
+     */
+    protected function GetModuleSettings()
+    {
+        return $this->oModuleSettings;
+    }
+
+    /**
      * Returns **true** if oembed file info for specified link was found.
      *
      * @ignore
