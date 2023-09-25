@@ -139,15 +139,15 @@ class Module extends \Aurora\System\Module\AbstractModule
         $sOembedUrl = '';
 
         foreach ($this->aProviders as $aProvider) {
-            if (\preg_match("/".$aProvider['patterns']."/", $sUrl)) {
-                $sOembedUrl = $aProvider['url'].$sUrl;
+            if (\preg_match("/" . $aProvider['patterns'] . "/", $sUrl)) {
+                $sOembedUrl = $aProvider['url'] . $sUrl;
                 break;
             }
         }
 
         if (false !== \strpos($sUrl, 'instagram.com')) {
             $sUrl = \str_replace('instagram.com', 'instagr.am', $sUrl);
-            $sOembedUrl = 'https://api.instagram.com/oembed?url='.$sUrl;
+            $sOembedUrl = 'https://api.instagram.com/oembed?url=' . $sUrl;
         }
 
         if (\strlen($sOembedUrl) > 0) {
@@ -172,7 +172,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $sSearch = $oResult->html;
                 $aPatterns = array('/ width="\d+."/', '/ height="\d+."/', '/(src="[^\"]+)/');
                 $aResults = array(' width="896"', ' height="504"', '$1?&autoplay=1&auto_play=true');
-                $oResult->html =\preg_replace($aPatterns, $aResults, $sSearch);
+                $oResult->html = \preg_replace($aPatterns, $aResults, $sSearch);
 
                 $aRemoteFileInfo = \Aurora\System\Utils::GetRemoteFileInfo($sUrl);
                 $oResult->fileSize = $aRemoteFileInfo['size'];
@@ -194,7 +194,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      */
     protected function loadProviders()
     {
-        $sFile = __DIR__.DIRECTORY_SEPARATOR.'providers.json';
+        $sFile = __DIR__ . DIRECTORY_SEPARATOR . 'providers.json';
         if (\file_exists($sFile)) {
             $sJsonData = \file_get_contents($sFile);
             $aJsonData = \json_decode($sJsonData, true);
