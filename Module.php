@@ -94,7 +94,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                     $mResult['Size'] = isset($oInfo->fileSize) ? $oInfo->fileSize : '';
                     $mResult['Name'] = isset($oInfo->title) ? $oInfo->title : '';
                     $mResult['LinkType'] = 'oembeded';
-                    $mResult['Thumb'] = isset($oInfo->thumbnail_url) ? $oInfo->thumbnail_url : null;
+                    $mResult['Thumb'] = isset($oInfo->thumbnailUrl) ? $oInfo->thumbnailUrl : null;
                 }
             }
         }
@@ -115,7 +115,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 
             if ($Result) {
                 $oItem->LinkType = 'oembeded';
-                // $oItem->Name = isset($Result->title) ? $Result->title : $oItem->Name;
+                $oItem->Name = isset($Result->title) ? $Result->title : $oItem->Name;
                 $oItem->Size = isset($Result->fileSize) ? $Result->fileSize : $oItem->Size;
                 $oItem->OembedHtml = isset($Result->html) ? $Result->html : $oItem->OembedHtml;
                 $oItem->Thumb = true;

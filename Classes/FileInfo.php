@@ -17,38 +17,32 @@ namespace Aurora\Modules\OEmbedFiles\Classes;
  * @property string $fileSize
  * @property string $thumbnailUrl
  */
-class FileInfo extends \Aurora\System\AbstractContainer
+class FileInfo
 {
+    /**
+     * @var string
+     */
+    public $title;
+    /**
+     * @var string
+     */
+    public $html;
+
+    /**
+     * @var string
+     */
+    public $fileSize;
+
+    /**
+     * @var string
+     */
+    public $thumbnailUrl;
+
     public function __construct()
     {
-        parent::__construct(get_class($this));
-
-        $this->SetDefaults(array(
-            'title' => '',
-            'html' => '',
-            'fileSize' => '',
-            'thumbnailUrl' => '',
-        ));
-    }
-
-    /**
-     * @return array
-     */
-    public function getMap()
-    {
-        return self::getStaticMap();
-    }
-
-    /**
-     * @return array
-     */
-    public static function getStaticMap()
-    {
-        return array(
-            'title' => array('string'),
-            'html' => array('string'),
-            'fileSize' => array('string'),
-            'thumbnailUrl' => array('string'),
-        );
+        $this->title = '';
+        $this->html = '';
+        $this->fileSize = '';
+        $this->thumbnailUrl = '';
     }
 }
