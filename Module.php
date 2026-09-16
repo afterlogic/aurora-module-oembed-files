@@ -151,7 +151,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_AUTOREFERER => true,
-                CURLOPT_SSL_VERIFYPEER => false, //required for https urls
+                CURLOPT_SSL_VERIFYPEER => true,
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_TIMEOUT => 5,
                 CURLOPT_MAXREDIRS => 5
