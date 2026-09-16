@@ -120,6 +120,33 @@ class Module extends \Aurora\System\Module\AbstractModule
     }
 
     /**
+     * Checks that a URL's host resolves to a public (non-private, non-reserved) IP address.
+     * Used to reject a provider redirect that points at an internal address (SSRF).
+     *
+     * @param string $sUrl
+     * @return bool
+     */
+    protected function isRemoteHostPublic($sUrl)
+    {
+        $sHost = \parse_url((string) $sUrl, PHP_URL_HOST);
+        if (empty($sHost)) {
+            return false;
+        }
+
+        if (\filter_var($sHost, FILTER_VALIDATE_IP)) {
+            $sIp = $sHost;
+        } else {
+            $sIp = \gethostbyname($sHost);
+            if ($sIp === $sHost) {
+                // Could not resolve the host.
+                return false;
+            }
+        }
+
+        return (bool) \filter_var($sIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+    }
+
+    /**
      * Returns Oembed information for file.
      *
      * @param string $sUrl
@@ -149,6 +176,8 @@ class Module extends \Aurora\System\Module\AbstractModule
                 CURLOPT_HEADER => 0,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
                 CURLOPT_ENCODING => '',
                 CURLOPT_AUTOREFERER => true,
                 CURLOPT_SSL_VERIFYPEER => true,
@@ -157,7 +186,14 @@ class Module extends \Aurora\System\Module\AbstractModule
                 CURLOPT_MAXREDIRS => 5
             ));
             $sResult = \curl_exec($oCurl);
+            $sEffectiveUrl = \curl_getinfo($oCurl, CURLINFO_EFFECTIVE_URL);
             \curl_close($oCurl);
+
+            // A provider's own redirect could otherwise be used to reach an internal address (SSRF).
+            if (!$this->isRemoteHostPublic($sEffectiveUrl)) {
+                $sResult = false;
+            }
+
             $oResult = \json_decode($sResult);
 
             if ($oResult) {
