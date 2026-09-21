@@ -187,7 +187,6 @@ class Module extends \Aurora\System\Module\AbstractModule
             ));
             $sResult = \curl_exec($oCurl);
             $sEffectiveUrl = \curl_getinfo($oCurl, CURLINFO_EFFECTIVE_URL);
-            \curl_close($oCurl);
 
             // A provider's own redirect could otherwise be used to reach an internal address (SSRF).
             if (!$this->isRemoteHostPublic($sEffectiveUrl)) {
