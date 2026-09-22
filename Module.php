@@ -120,30 +120,126 @@ class Module extends \Aurora\System\Module\AbstractModule
     }
 
     /**
-     * Checks that a URL's host resolves to a public (non-private, non-reserved) IP address.
-     * Used to reject a provider redirect that points at an internal address (SSRF).
+     * Resolves a URL's host to a single IP and validates it's safe to fetch: http(s) scheme
+     * only, and a public (non-private, non-reserved) IP address. Used to reject a provider
+     * redirect that points at an internal address (SSRF).
+     *
+     * Returns the resolved IP so the caller can pin curl to it (see pinCurlToResolvedHost())
+     * instead of letting curl resolve the host again at connect time -- resolving twice would
+     * let an attacker who controls the host's DNS answer safely for this check and then point
+     * at an internal address for the actual request (DNS rebinding).
      *
      * @param string $sUrl
-     * @return bool
+     * @return string|null The resolved IP, or null if the URL isn't safe to fetch.
      */
-    protected function isRemoteHostPublic($sUrl)
+    protected function resolveSafeIp($sUrl)
     {
-        $sHost = \parse_url((string) $sUrl, PHP_URL_HOST);
-        if (empty($sHost)) {
-            return false;
+        $aParts = \parse_url((string) $sUrl);
+        if (!isset($aParts['scheme'], $aParts['host']) || !\in_array(\strtolower($aParts['scheme']), ['http', 'https'], true)) {
+            return null;
         }
 
+        $sHost = $aParts['host'];
         if (\filter_var($sHost, FILTER_VALIDATE_IP)) {
             $sIp = $sHost;
         } else {
             $sIp = \gethostbyname($sHost);
             if ($sIp === $sHost) {
                 // Could not resolve the host.
-                return false;
+                return null;
             }
         }
 
-        return (bool) \filter_var($sIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        return \filter_var($sIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) ? $sIp : null;
+    }
+
+    /**
+     * Checks that a URL's host resolves to a public (non-private, non-reserved) IP address.
+     * See resolveSafeIp().
+     *
+     * @param string $sUrl
+     * @return bool
+     */
+    protected function isRemoteHostPublic($sUrl)
+    {
+        return $this->resolveSafeIp($sUrl) !== null;
+    }
+
+    /**
+     * Pins a curl handle to $sIp for $sUrl's host via CURLOPT_RESOLVE, so curl connects to
+     * exactly the address that was validated by resolveSafeIp() instead of resolving the host
+     * again itself. The Host header, TLS SNI and certificate check still use the original
+     * hostname, so this doesn't affect HTTPS validation.
+     *
+     * @param \CurlHandle|resource $oCurl
+     * @param string $sUrl
+     * @param string $sIp
+     * @return void
+     */
+    protected function pinCurlToResolvedHost($oCurl, $sUrl, $sIp)
+    {
+        $aParts = \parse_url((string) $sUrl);
+        $sHost = $aParts['host'] ?? '';
+        $iPort = $aParts['port'] ?? (\strtolower($aParts['scheme'] ?? '') === 'https' ? 443 : 80);
+        $sTarget = false !== \strpos($sIp, ':') ? '[' . $sIp . ']' : $sIp; // bracket IPv6 addresses
+
+        \curl_setopt($oCurl, CURLOPT_RESOLVE, [$sHost . ':' . $iPort . ':' . $sTarget]);
+    }
+
+    /**
+     * Fetches $sUrl, following redirects manually (up to 5 hops) instead of via
+     * CURLOPT_FOLLOWLOCATION, so every hop -- including ones a provider's own redirect points
+     * at -- is validated and pinned to its resolved IP *before* curl connects to it. With
+     * FOLLOWLOCATION, curl would already have connected to an internal address before any
+     * after-the-fact check on the final URL could reject it.
+     *
+     * @param string $sUrl
+     * @return string|false The response body, or false if the URL (or a redirect target) isn't
+     *                       safe to fetch, the request failed, or there were too many redirects.
+     */
+    protected function fetchUrlFollowingSafeRedirects($sUrl)
+    {
+        for ($i = 0; $i <= 5; $i++) {
+            $sIp = $this->resolveSafeIp($sUrl);
+            if ($sIp === null) {
+                return false;
+            }
+
+            $oCurl = \curl_init();
+            \curl_setopt_array($oCurl, array(
+                CURLOPT_URL => $sUrl,
+                CURLOPT_HEADER => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => false,
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+                CURLOPT_ENCODING => '',
+                CURLOPT_AUTOREFERER => true,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 5,
+            ));
+            $this->pinCurlToResolvedHost($oCurl, $sUrl, $sIp);
+            $sResponse = \curl_exec($oCurl);
+            if (!\is_string($sResponse)) {
+                return false;
+            }
+
+            $iCode = (int) \curl_getinfo($oCurl, CURLINFO_HTTP_CODE);
+            $iHeaderSize = (int) \curl_getinfo($oCurl, CURLINFO_HEADER_SIZE);
+            $sBody = \substr($sResponse, $iHeaderSize);
+
+            if (!\in_array($iCode, [301, 302, 303, 307, 308], true)) {
+                return $sBody;
+            }
+
+            if (!\preg_match('/^Location:\s*(\S+)/mi', \substr($sResponse, 0, $iHeaderSize), $aMatches)) {
+                return false;
+            }
+
+            $sUrl = \Sabre\Uri\resolve($sUrl, \trim($aMatches[1]));
+        }
+
+        return false; // too many redirects
     }
 
     /**
@@ -170,28 +266,10 @@ class Module extends \Aurora\System\Module\AbstractModule
         }
 
         if (\strlen($sOembedUrl) > 0) {
-            $oCurl = \curl_init();
-            \curl_setopt_array($oCurl, array(
-                CURLOPT_URL => $sOembedUrl,
-                CURLOPT_HEADER => 0,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-                CURLOPT_ENCODING => '',
-                CURLOPT_AUTOREFERER => true,
-                CURLOPT_SSL_VERIFYPEER => true,
-                CURLOPT_CONNECTTIMEOUT => 5,
-                CURLOPT_TIMEOUT => 5,
-                CURLOPT_MAXREDIRS => 5
-            ));
-            $sResult = \curl_exec($oCurl);
-            $sEffectiveUrl = \curl_getinfo($oCurl, CURLINFO_EFFECTIVE_URL);
-
-            // A provider's own redirect could otherwise be used to reach an internal address (SSRF).
-            if (!$this->isRemoteHostPublic($sEffectiveUrl)) {
-                $sResult = false;
-            }
+            // Each redirect hop (a provider's own redirect could otherwise be used to reach an
+            // internal address - SSRF) is validated and pinned to its resolved IP before it's
+            // connected to, not just checked after the fact on the final URL.
+            $sResult = $this->fetchUrlFollowingSafeRedirects($sOembedUrl);
 
             $oResult = \json_decode($sResult);
 
