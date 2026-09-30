@@ -150,7 +150,7 @@ class Module extends \Aurora\System\Module\AbstractModule
             }
         }
 
-        return \filter_var($sIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) ? $sIp : null;
+        return \Aurora\System\Utils::IsPublicIpAddress($sIp) ? $sIp : null;
     }
 
     /**
