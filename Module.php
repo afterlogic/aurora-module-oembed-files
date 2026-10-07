@@ -107,8 +107,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 
             if ($Result) {
                 $oItem->LinkType = 'oembeded';
-                $oItem->Name = isset($Result->title) ? $Result->title : $oItem->Name;
-                $oItem->Size = isset($Result->fileSize) ? $Result->fileSize : $oItem->Size;
+                $oItem->Name = !empty($Result->title) ? $Result->title : $oItem->Name;
+                $oItem->Size = !empty($Result->fileSize) ? $Result->fileSize : $oItem->Size;
                 $oItem->OembedHtml = isset($Result->html) ? $Result->html : $oItem->OembedHtml;
                 $oItem->Thumb = true;
                 $oItem->ThumbnailUrl = $Result->thumbnailUrl;
@@ -285,6 +285,7 @@ class Module extends \Aurora\System\Module\AbstractModule
                 $oResult->thumbnailUrl = isset($oResult->thumbnail_url) ? $oResult->thumbnail_url : '';
 
                 $mResult = new \Aurora\Modules\OEmbedFiles\Classes\FileInfo();
+                $mResult->title = isset($oResult->title) ? trim(\preg_replace('#[\\\\/\x00-\x1f]+#', ' ', (string) $oResult->title)) : '';
                 $mResult->html = $oResult->html;
                 $mResult->fileSize = $oResult->fileSize;
                 $mResult->thumbnailUrl = $oResult->thumbnailUrl;
