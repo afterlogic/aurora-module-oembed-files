@@ -171,7 +171,7 @@ class Module extends \Aurora\System\Module\AbstractModule
      * again itself. The Host header, TLS SNI and certificate check still use the original
      * hostname, so this doesn't affect HTTPS validation.
      *
-     * @param \CurlHandle|resource $oCurl
+     * @param resource|object $oCurl
      * @param string $sUrl
      * @param string $sIp
      * @return void
